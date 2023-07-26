@@ -45,15 +45,18 @@ app.post(
       case "customer.subscription.created":
         const customerSubscriptionCreated = event.data.object;
         io.emit("message", { event: customerSubscriptionCreated });
+        console.log("create " + customerSubscriptionCreated);
         // Then define and call a function to handle the event customer.subscription.created
         break;
       case "customer.subscription.deleted":
         const customerSubscriptionDeleted = event.data.object;
         io.emit("message", { event: customerSubscriptionDeleted });
+        console.log("delete  " + customerSubscriptionDeleted);
         break;
       case "customer.subscription.updated":
         const customerSubscriptionUpdated = event.data.object;
         io.emit("message", { event: customerSubscriptionUpdated });
+        console.log("update " + customerSubscriptionUpdated);
         break;
       // ... handle other event types
       default:
