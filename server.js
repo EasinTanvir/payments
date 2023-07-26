@@ -9,6 +9,64 @@ const Server_Url = process.env.Server_Url;
 const mongoose = require("mongoose");
 const TEST = require("./models/user");
 
+const server = app.listen(process.env.PORT, () => {
+  console.log("srver running");
+});
+const io = require("socket.io")(server, {
+  cors: {
+    origin: "https://host.easintanvir.com",
+  },
+});
+io.on("connection", (socket) => {
+  console.log("client connected");
+});
+//start from here
+
+// This is your Stripe CLI webhook secret for testing your endpoint locally.
+const endpointSecret =
+  "whsec_ec50b28f29284c390bb90b0e1069671ab625907c58d259bda112c02e624b0847";
+
+app.post(
+  "/webhook",
+  express.raw({ type: "application/json" }),
+  (request, response) => {
+    const sig = request.headers["stripe-signature"];
+
+    let event;
+
+    try {
+      event = stripe.webhooks.constructEvent(request.body, sig, endpointSecret);
+    } catch (err) {
+      response.status(400).send(`Webhook Error: ${err.message}`);
+      return;
+    }
+
+    // Handle the event
+    switch (event.type) {
+      case "customer.subscription.created":
+        const customerSubscriptionCreated = event.data.object;
+        io.emit("message", { event: customerSubscriptionCreated });
+        // Then define and call a function to handle the event customer.subscription.created
+        break;
+      case "customer.subscription.deleted":
+        const customerSubscriptionDeleted = event.data.object;
+        io.emit("message", { event: customerSubscriptionDeleted });
+        break;
+      case "customer.subscription.updated":
+        const customerSubscriptionUpdated = event.data.object;
+        io.emit("message", { event: customerSubscriptionUpdated });
+        break;
+      // ... handle other event types
+      default:
+        console.log(`Unhandled event type ${event.type}`);
+    }
+
+    // Return a 200 response to acknowledge receipt of the event
+    response.sendStatus(200);
+  }
+);
+//end here
+
 app.use(express.json());
 app.use(cors());
 
@@ -63,18 +121,6 @@ app.get("/paymenterror", async (req, res) => {
   res.redirect("https://host.easintanvir.com/error");
 });
 
-const server = app.listen(process.env.PORT, () => {
-  console.log("srver running");
-});
-const io = require("socket.io")(server, {
-  cors: {
-    origin: "https://host.easintanvir.com",
-  },
-});
-io.on("connection", (socket) => {
-  console.log("client connected");
-});
-
 app.post("/test", async (req, res) => {
   const data2 = {
     name: "My name is Easin",
@@ -90,49 +136,3 @@ app.post("/test", async (req, res) => {
     console.log(err);
   }
 });
-
-//start from here
-
-// This is your Stripe CLI webhook secret for testing your endpoint locally.
-const endpointSecret =
-  "whsec_ec50b28f29284c390bb90b0e1069671ab625907c58d259bda112c02e624b0847";
-
-app.post(
-  "/webhook",
-  express.raw({ type: "application/json" }),
-  (request, response) => {
-    const sig = request.headers["stripe-signature"];
-
-    let event;
-
-    try {
-      event = stripe.webhooks.constructEvent(request.body, sig, endpointSecret);
-    } catch (err) {
-      response.status(400).send(`Webhook Error: ${err.message}`);
-      return;
-    }
-
-    // Handle the event
-    switch (event.type) {
-      case "customer.subscription.created":
-        const customerSubscriptionCreated = event.data.object;
-        io.emit("message", { event: customerSubscriptionCreated });
-        // Then define and call a function to handle the event customer.subscription.created
-        break;
-      case "customer.subscription.deleted":
-        const customerSubscriptionDeleted = event.data.object;
-        io.emit("message", { event: customerSubscriptionDeleted });
-        break;
-      case "customer.subscription.updated":
-        const customerSubscriptionUpdated = event.data.object;
-        io.emit("message", { event: customerSubscriptionUpdated });
-        break;
-      // ... handle other event types
-      default:
-        console.log(`Unhandled event type ${event.type}`);
-    }
-
-    // Return a 200 response to acknowledge receipt of the event
-    response.sendStatus(200);
-  }
-);
