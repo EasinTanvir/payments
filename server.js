@@ -23,8 +23,7 @@ io.on("connection", (socket) => {
 //start from here
 
 // This is your Stripe CLI webhook secret for testing your endpoint locally.
-const endpointSecret =
-  "whsec_ec50b28f29284c390bb90b0e1069671ab625907c58d259bda112c02e624b0847";
+const endpointSecret = "whsec_NBffUiUhKY3LT7Tn2Dln5oSGzHxI5hsa";
 
 app.post(
   "/webhook",
