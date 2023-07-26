@@ -8,7 +8,7 @@ const stripe = require("stripe")(Stripe_Key);
 const Server_Url = process.env.Server_Url;
 const mongoose = require("mongoose");
 const TEST = require("./models/user");
-
+app.use(cors());
 const server = app.listen(process.env.PORT, () => {
   console.log("srver running");
 });
@@ -67,7 +67,6 @@ app.post(
 //end here
 
 app.use(express.json());
-app.use(cors());
 
 mongoose
   .connect(process.env.MONGO_URL)
